@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 
 
-async function shiftFileNames(){
+function shiftFileNames(){
     var fnames = fs.readdirSync('./tmp/0');
 
     fnames.sort((a,b) => { 
