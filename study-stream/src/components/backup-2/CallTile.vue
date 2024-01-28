@@ -7,17 +7,17 @@
 
     <template v-else>
       <div class="wrapper">
-        <!-- <template v-if="error">
+        <template v-if="error">
           <p class="error-text">{{ error }}</p>
+          <!-- refreshing will leave the call and reset the app state -->
           <button class="error-button" @click="leaveAndCleanUp">Refresh</button>
         </template>
 
         <template v-if="showPermissionsError">
           <permissions-error-msg :reset="leaveAndCleanUp" />
-        </template> -->
+        </template>
 
-        <!-- <template v-else> -->
-        <template v-if="true">
+        <template v-else>
           <div
             :class="screen ? 'tile-container' : 'tile-container full-height'"
           >
@@ -134,15 +134,8 @@ export default {
       if (!this.callObject) return;
 
       const p = this.callObject.participants();
-      //if (!p.user_name) return;
-    
       this.count = Object.values(p).length;
       this.participants = Object.values(p);
-      this.participants = this.participants.filter((p) => {
-        console.log(p.user_name);
-        return p.user_name !== '';
-      });
-      console.log(this.participants);
 
       const screen = this.participants.filter((p) => p.screenVideoTrack);
       if (screen?.length && !this.screen) {

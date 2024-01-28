@@ -26,15 +26,19 @@
             </template>
 
             <div v-if="participants" class="participants-container">
-              <template v-for="p in participants" :key="p.session_id">
-                <video-tile
-                  :participant="p"
-                  :handle-video-click="handleVideoClick"
-                  :handle-audio-click="handleAudioClick"
-                  :handle-screenshare-click="handleScreenshareClick"
-                  :leave-call="leaveAndCleanUp"
-                  :disable-screen-share="screen && !screen?.local"
-                />
+              <template v-for="(p, idx) in participants" :key="p.session_id">
+                <div v-if="p.user_name">
+                  <video-tile
+                    :participant="p"
+                    :handle-video-click="handleVideoClick"
+                    :handle-audio-click="handleAudioClick"
+                    :handle-screenshare-click="handleScreenshareClick"
+                    :leave-call="leaveAndCleanUp"
+                    :disable-screen-share="screen && !screen?.local"
+                  />
+                  <!-- <a :id="`link-${idx}`"></a> -->
+                  <!-- <canvas :id="`canvas-${idx}`" width="640" height="480" ></canvas> -->
+                </div>
               </template>
 
               <template v-if="count === 1">
@@ -58,7 +62,7 @@ import ChatTile from "./ChatTile.vue";
 import VideoTile from "./VideoTile.vue";
 import ScreenshareTile from "./ScreenshareTile.vue";
 import LoadingTile from "./LoadingTile.vue";
-import PermissionsErrorMsg from "./PermissionsErrorMsg.vue";
+// import PermissionsErrorMsg from "./PermissionsErrorMsg.vue";
 
 export default {
   name: "CallTile",
@@ -68,7 +72,7 @@ export default {
     ChatTile,
     ScreenshareTile,
     LoadingTile,
-    PermissionsErrorMsg,
+    // PermissionsErrorMsg,
   },
   props: ["leaveCall", "name", "roomUrl"],
   data() {
@@ -100,6 +104,8 @@ export default {
     // Visit https://docs.daily.co/reference/daily-js/events for more event info
     co.on("joining-meeting", this.handleJoiningMeeting)
       .on("joined-meeting", this.updateParticpants)
+      // .on("loading", this.handleJoiningMeeting)
+      // .on("loaded", this.updateParticpants)
       .on("participant-joined", this.updateParticpants)
       .on("participant-updated", this.updateParticpants)
       .on("participant-left", this.updateParticpants)
@@ -108,6 +114,8 @@ export default {
       .on("camera-error", this.handleDeviceError)
       // app-message handles receiving remote chat messages
       .on("app-message", this.updateMessages);
+
+
   },
   unmounted() {
     if (!this.callObject) return;
@@ -134,14 +142,8 @@ export default {
       if (!this.callObject) return;
 
       const p = this.callObject.participants();
-      //if (!p.user_name) return;
-    
       this.count = Object.values(p).length;
       this.participants = Object.values(p);
-      this.participants = this.participants.filter((p) => {
-        console.log(p.user_name);
-        return p.user_name !== '';
-      });
       console.log(this.participants);
 
       const screen = this.participants.filter((p) => p.screenVideoTrack);
@@ -152,6 +154,12 @@ export default {
         this.screen = null;
       }
       this.loading = false;
+
+      if (this.name == null){
+        this.callObject.setLocalAudio(false);
+        this.callObject.setLocalVideo(false);
+      }
+      console.log(this.roomUrl);
     },
     // Add chat message to local message array
     updateMessages(e) {

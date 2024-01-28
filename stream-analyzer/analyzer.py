@@ -24,16 +24,12 @@ async def shiftFiles():
         os.rename(fname, fname_)
 
 async def crawl(page, idx):
-    res = await page.waitForSelector('video')
+    # await page.screenshot({'path': 'example.png', 'fullPage': True})
+    await page.waitForSelector('video')
 
     vidsHandle = await page.JJ('video')
 
-    # if (idx==600){
-    #     await shiftFileNames();
-    #     fs.unlinkSync('./tmp/0/-1.png');
-    #     idx = 599;
-    # }
-    time.sleep(0.01)
+    # time.sleep(0.01)
     await vidsHandle[0].screenshot({ 'path': f'./tmp/{idx}.png'})
 
 async def compute_EAR(model, im):

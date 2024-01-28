@@ -67,7 +67,7 @@ export default {
     // Add srcObject to video element
     handleVideo() {
       const p = this.participant;
-
+      console.log(p);
       // If the participant has their video off,
       // early out.
       if (!p?.video) return;
