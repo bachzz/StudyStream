@@ -1,7 +1,7 @@
 <template>
-  <div :class="chatIsOpen ? 'chat-wrapper open' : 'chat-wrapper'">
+  <div :class="chatIsOpen ? 'stats-wrapper open' : 'stats-wrapper'">
     <div>
-      <button class="chat" @click="handleChatClick">
+      <button class="stats" @click="handleChatClick">
         <template v-if="chatIsOpen">
           <img class="icon" :src="close" alt="" />
         </template>
@@ -11,8 +11,12 @@
       </button>
     </div>
 
-    <div class="chat-container">
-      <div class="messages">
+    <div class="stats-container">
+      <div id="chart">
+        <apexchart type="line" height="350" :options="chartOptions" :series="series"></apexchart>
+      </div>
+
+      <!-- <div class="messages">
         <p
           v-for="({ name = '', message = '' }, i) in messages"
           :key="i"
@@ -37,7 +41,7 @@
         <button class="submit-button" type="submit">
           <img :src="send" alt="" />
         </button>
-      </form>
+      </form> -->
     </div>
   </div>
 </template>
@@ -46,9 +50,13 @@
 import close from "../assets/x.svg";
 import chat from "../assets/chat.svg";
 import send from "../assets/send.svg";
+import VueApexCharts from 'apexcharts'
 
 export default {
   name: "ChatTile",
+  components: {
+    apexchart: VueApexCharts,
+  },
   props: ["sendMessage", "messages"],
   data() {
     return {
@@ -57,6 +65,39 @@ export default {
       chat,
       send,
       text: "",
+
+      series: [{
+          name: "Desktops",
+          data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
+      }],
+      chartOptions: {
+        chart: {
+          height: 350,
+          type: 'line',
+          zoom: {
+            enabled: false
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          curve: 'straight'
+        },
+        title: {
+          text: 'Product Trends by Month',
+          align: 'left'
+        },
+        grid: {
+          row: {
+            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+            opacity: 0.5
+          },
+        },
+        xaxis: {
+          categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+        }
+      },
     };
   },
   methods: {
@@ -78,21 +119,21 @@ export default {
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Ropa+Sans&display=swap");
 
-.chat-wrapper {
+.stats-wrapper {
   position: absolute;
   right: 0;
   top: 0;
   width: 348px;
   height: 100%;
   transition: right 0.5s ease-out;
-  right: -300px;
+  right: -355px;
   display: flex;
   align-items: center;
 }
-.chat-wrapper.open {
+.stats-wrapper.open {
   right: 0;
 }
-.chat-container {
+.stats-container {
   background-color: #fff;
   width: 300px;
   display: flex;
@@ -100,15 +141,15 @@ export default {
   padding: 24px;
   height: calc(100% - 48px);
 }
-button.chat {
+button.stats {
   background-color: #fff;
   border: none;
   cursor: pointer;
   border-radius: 16px 0 0 16px;
   padding: 16px 14px 13px 18px;
-  /* position: absolute;
-  top: calc(50% - 70px);
-  right: 348px; */
+  position: absolute;
+  top: calc(50% - 150px);
+  right: 348px;
 }
 .messages {
   flex: 1;
@@ -158,7 +199,7 @@ form {
 }
 
 @media screen and (max-width: 700px) {
-  .chat-container {
+  .stats-container {
     width: calc(100% - 104px);
     right: calc((100% + 56px) * -1);
   }

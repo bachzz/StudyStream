@@ -45,6 +45,8 @@
         </template>
 
         <chat-tile :send-message="sendMessage" :messages="messages" />
+        <stats-tile :send-message="sendMessage" :messages="messages" />
+
       </div>
     </template>
   </main>
@@ -55,6 +57,7 @@ import daily from "@daily-co/daily-js";
 
 import WaitingCard from "./WaitingCard.vue";
 import ChatTile from "./ChatTile.vue";
+import StatsTile from "./StatsTile.vue";
 import VideoTile from "./VideoTile.vue";
 import ScreenshareTile from "./ScreenshareTile.vue";
 import LoadingTile from "./LoadingTile.vue";
@@ -66,6 +69,7 @@ export default {
     VideoTile,
     WaitingCard,
     ChatTile,
+    StatsTile,
     ScreenshareTile,
     LoadingTile,
     PermissionsErrorMsg,

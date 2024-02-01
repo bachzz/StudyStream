@@ -1,24 +1,25 @@
 <template>
-  <div :class="chatIsOpen ? 'chat-wrapper open' : 'chat-wrapper'">
-    <div>
-      <button class="chat" @click="handleChatClick">
-        <template v-if="chatIsOpen">
-          <img class="icon" :src="close" alt="" />
-        </template>
-        <template v-else>
-          <img class="icon" :src="chat" alt="" />
-        </template>
-      </button>
+    <div :class="statsIsOpen ? 'stats-wrapper open' : 'stats-wrapper'">
+      <div>
+        <button class="stats" @click="handleStatsClick">
+          <template v-if="statsIsOpen">
+            <img class="icon" :src="close" alt="" />
+          </template>
+          <template v-else>
+            <img class="icon" :src="chat" alt="" />
+          </template>
+        </button>
+      </div>
     </div>
 
-    <div class="chat-container">
-      <div class="messages">
+    <div class="stats-container">
+      <div class="stats-messages">
         <p
           v-for="({ name = '', message = '' }, i) in messages"
           :key="i"
-          class="chat-message"
+          class="stats-message"
         >
-          <span class="chat-name">{{ name }}: </span>{{ message }}
+          <span class="stats-name">{{ name }}: </span>{{ message }}
         </p>
       </div>
 
@@ -34,13 +35,14 @@
           />
         </div>
 
-        <button class="submit-button" type="submit">
+        <button class="stats-submit-button" type="submit">
           <img :src="send" alt="" />
         </button>
       </form>
     </div>
-  </div>
+
 </template>
+
 
 <script>
 import close from "../assets/x.svg";
@@ -48,11 +50,11 @@ import chat from "../assets/chat.svg";
 import send from "../assets/send.svg";
 
 export default {
-  name: "ChatTile",
+  name: "StatsTile",
   props: ["sendMessage", "messages"],
   data() {
     return {
-      chatIsOpen: false,
+      statsIsOpen: false,
       close,
       chat,
       send,
@@ -61,8 +63,8 @@ export default {
   },
   methods: {
     // Toggle chat's view (open/closed)
-    handleChatClick() {
-      this.chatIsOpen = !this.chatIsOpen;
+    handleStatsClick() {
+      this.statsIsOpen = !this.statsIsOpen;
     },
     // Send chat message using prop method from CallTile.vue
     submitForm(e) {
@@ -78,7 +80,7 @@ export default {
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Ropa+Sans&display=swap");
 
-.chat-wrapper {
+.stats-wrapper {
   position: absolute;
   right: 0;
   top: 0;
@@ -89,28 +91,28 @@ export default {
   display: flex;
   align-items: center;
 }
-.chat-wrapper.open {
+.stats-wrapper.open {
   right: 0;
 }
-.chat-container {
+.stats-container {
   background-color: #fff;
-  width: 300px;
+  width: 0px;
   display: flex;
   flex-direction: column;
   padding: 24px;
   height: calc(100% - 48px);
 }
-button.chat {
+button.stats {
   background-color: #fff;
   border: none;
   cursor: pointer;
   border-radius: 16px 0 0 16px;
   padding: 16px 14px 13px 18px;
-  /* position: absolute;
-  top: calc(50% - 70px);
-  right: 348px; */
+  position: absolute;
+  top: calc(50% - 150px);
+  right: 348px;
 }
-.messages {
+.stats-messages {
   flex: 1;
   padding-right: 32px;
 }
@@ -146,19 +148,19 @@ form {
   background-color: #fff;
 }
 
-.chat-message {
+.stats-message {
   color: #121a24;
   text-align: left;
   font-size: 14px;
   line-height: 18px;
   margin: 0 0 20px;
 }
-.chat-message .chat-name {
+.stats-message .stats-name {
   color: #6b7785;
 }
 
 @media screen and (max-width: 700px) {
-  .chat-container {
+  .stats-container {
     width: calc(100% - 104px);
     right: calc((100% + 56px) * -1);
   }

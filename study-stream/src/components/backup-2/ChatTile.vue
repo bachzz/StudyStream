@@ -106,9 +106,6 @@ button.chat {
   cursor: pointer;
   border-radius: 16px 0 0 16px;
   padding: 16px 14px 13px 18px;
-  /* position: absolute;
-  top: calc(50% - 70px);
-  right: 348px; */
 }
 .messages {
   flex: 1;

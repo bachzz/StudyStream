@@ -77,7 +77,7 @@ async def compute_EAR(model, im):
 async def main():
     browser = await launch(executablePath='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
     page = await browser.newPage()
-    await page.goto('http://127.0.0.1:5173/')
+    await page.goto('http://localhost:5173/') #('http://127.0.0.1:5173/')
     
     # await page.screenshot({'path': 'example.png', 'fullPage': True})
     client = await page.target.createCDPSession()
@@ -88,7 +88,7 @@ async def main():
     el = await page.J('#btn-spectate')
     await el.click()
 
-
+    # while True: await page.screenshot({'path': 'example.png', 'fullPage': True})
     ### HRNet init
     HRNET_BASE_DIR = './tools/HRNet_Facial_Landmark_Detection'
     parser = argparse.ArgumentParser(description='Real-time webcam demo')
