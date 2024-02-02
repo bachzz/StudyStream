@@ -24,6 +24,8 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 from urllib.parse import urlparse, parse_qs
+import sys
+import signal
 
 # Shared dictionary variable
 data_json = {
@@ -44,6 +46,10 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         with dict_lock:
             self.wfile.write(bytes(json.dumps(data_json), "utf8"))
+    
+    # Override the log_message method to disable logging
+    def log_message(self, format, *args):
+        return
 
 def run_server(server_class=HTTPServer, handler_class=RequestHandler, port=3000):
     server_address = ('localhost', port)
@@ -75,7 +81,6 @@ async def crawl(page, idx):
 
     vidsHandle = await page.JJ('video')
 
-    # time.sleep(0.01)
     await vidsHandle[0].screenshot({ 'path': f'./tmp/{idx}.png'})
 
 async def compute_EAR(model, im):
@@ -84,7 +89,6 @@ async def compute_EAR(model, im):
     std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
     im_ = (im_ / 255.0 - mean) / std
     im_ = torch.from_numpy(im_).permute(2,0,1).unsqueeze(0)
-    # breakpoint()
     # t = time.time()
     output = model(im_)
     # print(f"[HRNet] {fname} - Elapsed time = {time.time()-t}")
@@ -116,17 +120,26 @@ async def compute_EAR(model, im):
         left_coords_start[1] = left_coords_start[1]-int(MIN_HEIGHT_RESIZE/2)
     left_coords_start = tuple(left_coords_start)
     left_coords_end = tuple(left_coords_end)
-    eye_im = im[left_coords_start[1]:left_coords_end[1],left_coords_start[0]:left_coords_end[0],:]
     # breakpoint()
     return EAR_ratio
 
 
+## Global asyncio.Event for signal handling
+shutdown_event = asyncio.Event()
+
 async def analyzer_loop():
     global data_json
     browser = await launch(executablePath='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
+
     page = await browser.newPage()
     await page.goto('http://localhost:5173/') #('http://127.0.0.1:5173/')
     
+    def signal_handler(*args):
+        print('SIGINT received, shutting down...')
+        shutdown_event.set()
+    
+    signal.signal(signal.SIGINT, signal_handler)
+
     # await page.screenshot({'path': 'example.png', 'fullPage': True})
     client = await page.target.createCDPSession()
     await client.send('Page.setDownloadBehavior', {
@@ -136,7 +149,6 @@ async def analyzer_loop():
     el = await page.J('#btn-spectate')
     await el.click()
 
-    # while True: await page.screenshot({'path': 'example.png', 'fullPage': True})
     ### HRNet init
     HRNET_BASE_DIR = './tools/HRNet_Facial_Landmark_Detection'
     parser = argparse.ArgumentParser(description='Real-time webcam demo')
@@ -165,15 +177,16 @@ async def analyzer_loop():
     data_json = {
         "data": []
     }
-    max_num_results = 50
+    max_num_results = 100
 
     ## init values
-    seq_len=20
+    seq_len=20 ## analyze only 20 frames (due to low FPS)
     EAR_arr = np.full((seq_len), np.nan)
     idx = 0
     id = 0
 
-    while True:
+    # while True:
+    while not shutdown_event.is_set():
         if (idx == seq_len):
             await shiftFiles()
             os.remove('./tmp\\-1.png')
@@ -219,31 +232,13 @@ async def analyzer_loop():
             else:
                 data_json['data'].append(data)
 
-            # print(data_json)
-            # with open("prediction-data.json", 'w', encoding='utf-8') as fp:
-            #     json.dump(data_json, fp, ensure_ascii=False)
-            # with open("prediction-data.json", 'w') as fp:
-            #     time.sleep(0.5)
-            #     json.dump(data_json, fp)
-
         idx = idx+1
         id = id+1
 
     await browser.close()
+    sys.exit(0)
 
 
-# def update_results_dict():
-#     # global shared_dict
-#     # while True:
-#     #     with dict_lock:
-#     #         # Modify the shared dictionary here
-#     #         shared_dict["key"] = "new value"
-#     #         print("Dictionary modified:", shared_dict)
-#     #     time.sleep(5)  # Modify every 5 seconds
-#     loop = asyncio.new_event_loop()
-#     asyncio.set_event_loop(loop)
-#     future = asyncio.ensure_future(analyzer_loop())
-#     loop.run_until_complete(future)
 
 def start_async_loop():
     asyncio.run(analyzer_loop())
@@ -252,11 +247,9 @@ def start_async_loop():
 if __name__ == '__main__':
     server_thread = threading.Thread(target=run_server)
     server_thread.daemon = True
-    # modifier_thread = threading.Thread(target=update_results_dict)
 
     server_thread.start()
-    # modifier_thread.start()
+
     start_async_loop()
 
     server_thread.join()
-    # modifier_thread.join()
