@@ -1,28 +1,28 @@
 <template>
   <main>
     <div class="wrapper">
-      <h1>Call object Vue demo</h1>
-      <p>Demo a custom call interface built using Daily call object for Vue</p>
+      <h1>Study Stream</h1>
+      <p>Study together & Visualize learning performance !</p>
 
       <form class="join-form" @submit="joinWithName">
         <div class="name-container">
           <label for="name">Your name</label>
           <input id="name" v-model="name" type="text" required />
-          <label for="name">Daily URL</label>
+          <!-- <label for="name">Daily URL</label>
           <input
             id="url"
             v-model="url"
             type="text"
             placeholder="https://your-daily-domain.daily.co/room-name"
             required
-          />
+          /> -->
         </div>
         <div class="submit-container">
-          <button type="submit">Start demo</button>
+          <button type="submit">Join learning</button>
         </div>
       </form>
 
-      <div class="submit-container">
+      <div style="opacity: 0;">
         <button id="btn-spectate" @click="joinSpectate">Spectate</button>
       </div>
 
@@ -45,7 +45,7 @@ export default {
   data() {
     return {
       name: "",
-      url: "",
+      url: "https://e-learning.daily.co/room-1",
     };
   },
   methods: {
