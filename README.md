@@ -3,7 +3,7 @@
 Stream your learning with performance analysis 
 <div><video controls src="https://github.com/bachzz/StudyStream/assets/22543582/d139864f-4ce5-47f4-bc63-fbac3ffb1fec" muted="true"></video></div>
 
-## **study-stream**: Web GUI client
+## **STUDY-STREAM**: Web GUI client
 
 ### Features
 - video call: multiple users
@@ -17,7 +17,7 @@ Stream your learning with performance analysis
 - install packages: `yarn install`
 - run server: `yarn dev`
 
-## **stream-analyzer**: Analyze user's facial video stream, returns attention score
+## **STREAM-ANALYZER**: Analyze user's facial video stream, returns attention score
 
 ### Features
 - uses pyppeteer running daemon Chrome browser to crawl user's live video frames
