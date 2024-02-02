@@ -13,8 +13,6 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.31.0",
     "apexcharts": "^3.45.2",
-    "json-server": "^1.0.0-alpha.23",
-    "puppeteer": "^21.6.1",
     "puppeteer-core": "^21.6.1",
     "vue": "^3.2.40",
     "vue3-apexcharts": "^1.4.4"

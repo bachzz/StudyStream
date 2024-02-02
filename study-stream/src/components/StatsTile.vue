@@ -16,7 +16,7 @@
         <apexchart ref="chart" type="line" height="350" :options="chartOptions" :series="series"></apexchart>
       </div>
 
-      <button @click="test">test</button>
+      <!-- <button @click="test">test</button> -->
 
     </div>
   </div>
@@ -136,8 +136,8 @@ export default {
         method: 'GET',
         url: statsUrl + "/data/",
       }).then(function(response) {
-        
-        response.data.forEach(el => {
+        console.log(response);
+        response.data.data.forEach(el => {
           var prob = el['prob'];
           var time = el['time'].split(' ')[1];
           var hour = parseInt(time.split(':')[0]);
@@ -187,53 +187,6 @@ export default {
   },
 
   methods: {
-    async test(){
-      var probs = [];
-      var timestamps = []; 
-      var date = "";
-
-      // update probs series
-      await axios({
-        method: 'GET',
-        url: this.statsUrl + "/data/",
-      }).then(function(response) {
-        
-        response.data.forEach(el => {
-          probs.push(el['prob']);
-        });
-      });
-
-      this.$refs.chart.updateSeries([{
-        name: 'attention score',
-        data: probs
-      }]);
-
-      // update probs series
-      await axios({
-        method: 'GET',
-        url: this.statsUrl + "/time/",
-      }).then(function(response) {
-        
-        response.data.forEach(el => {
-          timestamps.push(el['time'].split(" ")[1]);
-        });
-
-        date = response.data[0]['time'].split(" ")[0];
-
-      });
-
-      this.$refs.chart.updateOptions({
-        title: {
-          text: 'Attention Performance - ' + date
-        },
-        xaxis: {
-          categories: timestamps
-        }
-      });
-
-
-      
-    },
 
     // Toggle chat's view (open/closed)
     handleChatClick() {
