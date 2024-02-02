@@ -1,3 +1,4 @@
+## basic libs
 import asyncio
 from pyppeteer import launch
 import time
@@ -8,12 +9,57 @@ import numpy as np
 import torch
 import argparse
 
+## HRNet - facial landmark libs
 import tools.HRNet_Facial_Landmark_Detection.lib.models as models
 from tools.HRNet_Facial_Landmark_Detection.lib.config import config, update_config
 from tools.HRNet_Facial_Landmark_Detection.lib.core.evaluation import decode_preds
 
-import matplotlib.pyplot as plt
+## classifier libs
+from xgboost import XGBClassifier
+import pickle
 
+## other libs
+from datetime import datetime
+import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
+from urllib.parse import urlparse, parse_qs
+
+# Shared dictionary variable
+data_json = {
+    "data": []
+}
+
+# Lock for synchronizing access to the shared dictionary
+dict_lock = threading.Lock()
+
+
+########## SERVER's thread functions #############
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        global shared_dict
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        with dict_lock:
+            self.wfile.write(bytes(json.dumps(data_json), "utf8"))
+
+def run_server(server_class=HTTPServer, handler_class=RequestHandler, port=3000):
+    server_address = ('localhost', port)
+    httpd = server_class(server_address, handler_class)
+    print(f'Starting httpd on port {port}...')
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    httpd.server_close()
+    print('Stopping httpd...')
+
+
+    
+
+########## ANALYZER's thread Functions #############
 
 async def shiftFiles():
     fnames = sorted(glob.glob("./tmp/*"), key=lambda x: int(x.split('\\')[-1].split('.png')[0]))
@@ -74,7 +120,9 @@ async def compute_EAR(model, im):
     # breakpoint()
     return EAR_ratio
 
-async def main():
+
+async def analyzer_loop():
+    global data_json
     browser = await launch(executablePath='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')
     page = await browser.newPage()
     await page.goto('http://localhost:5173/') #('http://127.0.0.1:5173/')
@@ -103,16 +151,27 @@ async def main():
     config.defrost()
     config.MODEL.INIT_WEIGHTS = False
     config.freeze()
-    model = models.get_face_alignment_net(config)
+    hrnet_model = models.get_face_alignment_net(config)
 
-    # load model
+    ## load HRNet model
     state_dict = torch.load(args.model_file, map_location=torch.device('cpu'))
-    model.load_state_dict(state_dict)
-    model.eval()
+    hrnet_model.load_state_dict(state_dict)
+    hrnet_model.eval()
 
+    ## load XGBoost model
+    xgb_model = pickle.load(open('./model/xgb_EAR.pkl', "rb"))
+
+    ## json data output file
+    data_json = {
+        "data": []
+    }
+    max_num_results = 50
+
+    ## init values
     seq_len=20
-    EAR_arr = np.full((1, seq_len), np.nan)
+    EAR_arr = np.full((seq_len), np.nan)
     idx = 0
+    id = 0
 
     while True:
         if (idx == seq_len):
@@ -120,19 +179,84 @@ async def main():
             os.remove('./tmp\\-1.png')
             idx = seq_len - 1
 
-        ### crawl
+        ## crawl
         await crawl(page, idx) #page.screenshot({'path': 'example.png', 'fullPage': True})
         
-        ### eye landmarks extraction -> compute EAR -> store in EAR_arr
+        ## eye landmarks extraction -> compute EAR -> store in EAR_arr
         im = Image.open(f'./tmp\\{idx}.png').convert('RGB')
         im = np.array(im.resize((640, 480), Image.BICUBIC))
         # breakpoint()
-        ear_ratio = await compute_EAR(model, im)
-        # breakpoint()
-        print(ear_ratio)
+        EAR_cur = await compute_EAR(hrnet_model, im)
+        print(f'\nEAR values = {EAR_arr}')
+
+        EAR_arr[:-1] = EAR_arr[1:] ## shift EAR values
+        EAR_arr[-1] = EAR_cur ## replace last value with current EAR
+        
+        ## model predict when EAR contains all valid values (when enough frames collected)
+        if True not in np.isnan(EAR_arr):
+            ## compute features
+            q1_feat = np.quantile(EAR_arr, 0.25)
+            q2_feat = np.quantile(EAR_arr, 0.5)
+            q3_feat = np.quantile(EAR_arr, 0.75)
+            mean_feat = np.mean(EAR_arr)
+            sd_feat = np.std(EAR_arr)
+            mad_feat = np.median(abs(EAR_arr - np.median(EAR_arr)))
+
+            ## model predict with computed features
+            x = np.array([[mean_feat, sd_feat, q1_feat, q2_feat, q3_feat, mad_feat]])
+            score = xgb_model.predict_proba(x)[0][1]
+            print(f'current batch - attention score = {score}')
+
+            date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            data = {'id':id, 'prob': '{:.2f}'.format(score), 'EAR_cur': '{:.2f}'.format(EAR_cur), 'time':date}
+
+
+            ## if number of results > max_num_results -> shift data results -> avoid memory leak
+            if len(data_json['data']) >= max_num_results:
+                data_json['data'][:-1] = data_json['data'][1:] 
+                data_json['data'][-1] = data
+            else:
+                data_json['data'].append(data)
+
+            # print(data_json)
+            # with open("prediction-data.json", 'w', encoding='utf-8') as fp:
+            #     json.dump(data_json, fp, ensure_ascii=False)
+            # with open("prediction-data.json", 'w') as fp:
+            #     time.sleep(0.5)
+            #     json.dump(data_json, fp)
 
         idx = idx+1
+        id = id+1
 
     await browser.close()
 
-asyncio.get_event_loop().run_until_complete(main())
+
+# def update_results_dict():
+#     # global shared_dict
+#     # while True:
+#     #     with dict_lock:
+#     #         # Modify the shared dictionary here
+#     #         shared_dict["key"] = "new value"
+#     #         print("Dictionary modified:", shared_dict)
+#     #     time.sleep(5)  # Modify every 5 seconds
+#     loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(loop)
+#     future = asyncio.ensure_future(analyzer_loop())
+#     loop.run_until_complete(future)
+
+def start_async_loop():
+    asyncio.run(analyzer_loop())
+
+
+if __name__ == '__main__':
+    server_thread = threading.Thread(target=run_server)
+    server_thread.daemon = True
+    # modifier_thread = threading.Thread(target=update_results_dict)
+
+    server_thread.start()
+    # modifier_thread.start()
+    start_async_loop()
+
+    server_thread.join()
+    # modifier_thread.join()
