@@ -1,6 +1,7 @@
 # StudyStream
 
 Stream your learning with performance analysis 
+<div><video controls src="https://github.com/bachzz/StudyStream/assets/22543582/dc37ae21-59ac-4bba-8e83-652d768c1d7b" muted="true"></video></div>
 
 ## **study-stream**: Web GUI client
 
