@@ -2,30 +2,18 @@
   <header>
     <div>
       <div class="row">
-        <a class="right-border" href="https://daily.co" target="_blank">
-          <img class="icon" :src="daily" alt="Daily.co" />
+        <a class="right-border" target="_blank">
+          <img class="header-icon" :src="studystream" alt="Study Stream" />
         </a>
-        <img class="icon" src="../assets/logo.png" alt="Daily.co" />
-        <p>Call object Vue Demo</p>
+        <p class="title">StudyStream</p>
       </div>
       <div class="row">
-        <div class="right-border">
-          <a
-            target="_blank"
-            class="button-link"
-            href="https://docs.daily.co/reference/daily-js"
-            rel="noreferrer noopener"
-          >
-            <span>API docs</span>
-            <img :src="newtab" alt="Open in new tab" />
-          </a>
-        </div>
         <a
-          href="https://github.com/daily-demos/vue-call-object"
+          href="https://github.com/bachzz/StudyStream"
           rel="noreferrer noopener"
           target="_blank"
         >
-          <img class="icon" :src="github" alt="Github repo" />
+          <img class="header-icon" :src="github" alt="Github repo" />
         </a>
       </div>
     </div>
@@ -34,7 +22,7 @@
 
 <script>
 import github from "../assets/github.svg";
-import daily from "../assets/daily.svg";
+import studystream from "../assets/header-logo.avif";
 import newtab from "../assets/newtab.svg";
 
 export default {
@@ -42,7 +30,8 @@ export default {
   data() {
     return {
       github,
-      daily,
+      // daily,
+      studystream,
       newtab,
     };
   },
@@ -54,7 +43,7 @@ header {
   font-size: 12px;
   line-height: 16px;
   font-weight: bold;
-  border-bottom: 1px solid #c8d1dc;
+  border-bottom: 1px solid #fff;
   padding: 2px;
   background-color: #fff;
 }
@@ -69,15 +58,24 @@ header > div {
 .icon {
   height: 24px;
 }
+
+.header-icon {
+  height: 50px;
+}
+
+.title {
+  font-size: medium;
+}
+
 .row {
   display: flex;
   align-items: center;
 }
-.right-border {
+/* .right-border {
   padding-right: 16px;
   border-right: 1px solid #c8d1dc;
   margin-right: 16px;
-}
+} */
 .button-link {
   border: 1px solid #c8d1dc;
   border-radius: 8px;
